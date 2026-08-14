@@ -1,0 +1,16 @@
+# Supplemental bug analysis; GCC remains authoritative.
+# The runner removes unsupported GCC 16 flags and excludes reflection's <meta> translation units.
+# Disable checks that only flag adjacent same-type parameters or enum-size micro-tuning.
+Checks: >
+  -*,
+  bugprone-*,
+  -bugprone-easily-swappable-parameters,
+  performance-*,
+  -performance-enum-size,
+  clang-analyzer-*,
+  portability-*
+# The runner separates analyzer findings from clang frontend diagnostics.
+WarningsAsErrors: ''
+# Restrict header diagnostics to project code.
+HeaderFilterRegex: '(include/erikslund/http|src)/'
+FormatStyle: none

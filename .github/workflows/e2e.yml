@@ -1,0 +1,46 @@
+name: E2E
+
+# The slower stack runs on main and on demand.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      check:
+        description: "One named check to run instead of the whole checklist (blank runs all)"
+        required: false
+        default: ""
+
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    name: end to end
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - name: End to end
+        env:
+          E2E_CHECK: ${{ inputs.check }}
+        run: |
+          if [ -n "$E2E_CHECK" ]; then
+            bash scripts/e2e.sh "$E2E_CHECK"
+          else
+            bash scripts/e2e.sh
+          fi
+
+      - name: Retain the evidence
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: e2e-logs-${{ github.run_id }}-${{ github.run_attempt }}
+          path: e2e/logs/
+          retention-days: 14
+          if-no-files-found: warn

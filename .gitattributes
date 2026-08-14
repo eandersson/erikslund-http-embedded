@@ -1,0 +1,32 @@
+# Linux toolchain inputs use LF even on Windows.
+
+* text=auto
+
+*.hpp       text eol=lf
+*.cpp       text eol=lf
+*.cppm      text eol=lf
+*.in        text eol=lf
+
+*.cmake     text eol=lf
+CMakeLists.txt text eol=lf
+
+*.sh        text eol=lf
+*.bash      text eol=lf
+*.mjs       text eol=lf
+*.py        text eol=lf
+*.rs        text eol=lf
+*.toml      text eol=lf
+*.yml       text eol=lf
+*.yaml      text eol=lf
+*.json      text eol=lf
+Dockerfile  text eol=lf
+Makefile    text eol=lf
+
+# Windows application scripts use CRLF.
+*.ps1       text eol=crlf
+
+*.png       binary
+*.jpg       binary
+*.ico       binary
+*.woff2     binary
+*.pem       binary

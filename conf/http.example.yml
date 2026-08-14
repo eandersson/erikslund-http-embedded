@@ -1,0 +1,124 @@
+# yaml-language-server: $schema=./http.schema.json
+#
+# Reference configuration with every ServerConfig key set to its default.
+# Regenerate the schema with scripts/generate-config-schema.sh after changing ServerConfig.
+# The schema aids editors; loader validation remains authoritative.
+# Files are selected by extension (.yml, .yaml, or .json), and unknown keys are errors.
+# Omitted keys keep these defaults. Copy this file for deployments; do not edit it in place.
+# See http.tls.example.yml for a compact two-listener LAN configuration.
+
+# One entry per socket. An empty list defaults to plaintext on "::1" port 7777.
+listeners:
+  # Public binding is an explicit operator decision; "::" is dual-stack on every interface.
+  # Ignored when unix_socket_path is set.
+  - bind_address: "::1"
+
+    # TCP port; 0 requests an ephemeral port readable through Server::port().
+    # Ignored for Unix sockets, where 0 is invalid.
+    port: 7777
+
+    # A non-empty path selects AF_UNIX and ignores bind_address and port.
+    # Unix sockets use one shared EPOLLEXCLUSIVE listener instead of SO_REUSEPORT.
+    unix_socket_path: ""
+
+    tls:
+      # Enabling TLS without OpenSSL support is an error.
+      enabled: false
+
+      # PEM certificate chain (leaf first) and private key; required when enabled.
+      certificate_chain_file: ""
+      private_key_file: ""
+
+      # Accepted values: "1.3" and "1.2".
+      minimum_version: "1.3"
+
+      # A non-empty PEM CA bundle enables client-certificate verification.
+      client_ca_file: ""
+
+      # Requires client_ca_file and rejects clients without a valid certificate.
+      require_client_certificate: false
+
+      # Only http/1.1 is supported; other protocols are rejected during loading.
+      alpn_protocols: "http/1.1"
+
+      # Empty uses OpenSSL's group list, including its preferred post-quantum hybrid.
+      group_list: ""
+
+      # Ticket keys rotate within the server.
+      session_tickets: true
+
+      # Keep disabled unless every route is safe to replay.
+      early_data: false
+
+      # Enables SSL_OP_ENABLE_KTLS where the platform supports it.
+      kernel_tls: true
+
+      # Sends one-year HSTS. Use only with a stable DNS name; IP hosts cannot be pinned.
+      strict_transport_security: false
+
+# Reactor threads. 0 uses hardware_concurrency clamped to 1..4; maximum 256.
+worker_threads: 0
+
+# Parser limits bound work performed for unauthenticated peers.
+limits:
+  # Bytes; minimum 1.
+  max_request_line_bytes: 8192
+
+  # Bytes; minimum 1. Oversized blocks return 431.
+  max_header_block_bytes: 16384
+
+  # Fields; range 1..64. Excess fields return 431 rather than being truncated.
+  max_header_count: 64
+
+  # Bytes; minimum 1 and no greater than max_request_line_bytes. Excess returns 414.
+  max_target_bytes: 2048
+
+  # Bytes; 0 rejects all request bodies. Excess returns 413.
+  max_body_bytes: 1048576
+
+# Process-wide across every reactor. Connections beyond the cap are immediately closed.
+max_connections: 512
+
+# Per TCP source address. Unix-domain peers use only the process-wide cap.
+max_connections_per_source: 64
+
+# Requests served before a keep-alive connection is closed.
+max_requests_per_connection: 100
+
+# Timeouts are milliseconds and must be greater than zero.
+handshake_timeout_ms: 5000
+header_timeout_ms: 5000
+body_timeout_ms: 5000
+write_timeout_ms: 5000
+
+# Idle keep-alive time; does not apply to streaming responses.
+keep_alive_idle_ms: 15000
+
+# Streaming inactivity limit. Keep above the SSE heartbeat interval (15s by default).
+stream_idle_timeout_ms: 60000
+
+# End-to-end wall-clock budget for one request.
+request_deadline_ms: 3000
+
+# listen(2) backlog; minimum 1.
+listen_backlog: 128
+
+# One listening socket per reactor. Unix sockets always use a shared listener.
+reuse_port: true
+
+# Enables TCP_NODELAY.
+tcp_nodelay: true
+
+# Warn when a routable listener has neither TLS nor an allowlist.
+warn_on_public_bind: true
+
+# Empty allows every peer. Invalid entries reject the entire configuration.
+# Accepts CIDRs and bare hosts; IPv4 rules also match IPv4-mapped IPv6 peers.
+allow_cidrs: []
+# allow_cidrs:
+#   - 127.0.0.1/32
+#   - ::1/128
+#   - 10.0.1.0/24
+
+# Server response header. Empty omits it; control characters are rejected.
+server_header: "erikslund-http"

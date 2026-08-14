@@ -1,0 +1,43 @@
+# Build output.
+build/
+build-*/
+cmake-build-*/
+_deps/
+
+# Generated build metadata.
+compile_commands.json
+include/erikslund/http/build_config.hpp
+
+# Tool caches.
+.cache/
+.ccache/
+*.gcda
+*.gcno
+
+# Deployment configuration; retain examples and the generated schema.
+conf/*.yml
+conf/*.yaml
+conf/*.json
+!conf/*.example.yml
+!conf/*.example.yaml
+!conf/*.example.json
+
+!conf/http.schema.json
+
+# TLS material.
+*.pem
+*.key
+*.crt
+*.csr
+
+dev-certificates/
+
+# E2E failure evidence.
+e2e/logs/
+
+# Editor and OS files.
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db

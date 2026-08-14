@@ -1,0 +1,31 @@
+@PACKAGE_INIT@
+
+# Exports the same erikslund::http target as in-tree builds.
+
+include(CMakeFindDependencyMacro)
+
+find_dependency(Threads)
+
+# Re-find dependencies enabled in the installed static archive.
+if(@ERIKSLUND_HTTP_TLS_01@)
+    find_dependency(OpenSSL 3.0 COMPONENTS SSL Crypto)
+endif()
+
+if(@ERIKSLUND_HTTP_ZLIB_01@)
+    find_dependency(ZLIB)
+endif()
+
+if(@ERIKSLUND_HTTP_GLAZE_FIND_DEPENDENCY@)
+    # Bare-header installations have no package to re-find.
+    find_dependency(glaze CONFIG)
+endif()
+
+include("${CMAKE_CURRENT_LIST_DIR}/erikslund-http-targets.cmake")
+
+# Mirror resolved features for consumer-side CMake branches.
+set(erikslund-http_TLS @ERIKSLUND_HTTP_TLS_01@)
+set(erikslund-http_ZLIB @ERIKSLUND_HTTP_ZLIB_01@)
+set(erikslund-http_CONTRACTS @ERIKSLUND_HTTP_CONTRACTS_01@)
+set(erikslund-http_REFLECTION @ERIKSLUND_HTTP_REFLECTION_01@)
+
+check_required_components(erikslund-http)

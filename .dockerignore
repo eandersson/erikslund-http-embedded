@@ -1,0 +1,34 @@
+# Host and build state.
+.git/
+.gitignore
+.gitattributes
+
+build/
+build-*/
+cmake-build-*/
+_deps/
+compile_commands.json
+include/erikslund/http/build_config.hpp
+
+.cache/
+.ccache/
+
+# E2E failure evidence.
+e2e/logs/
+
+# Secrets and deployment configuration.
+dev-certificates/
+*.pem
+*.key
+*.crt
+*.csr
+conf/*.yml
+conf/*.yaml
+!conf/*.example.yml
+!conf/*.example.yaml
+
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db

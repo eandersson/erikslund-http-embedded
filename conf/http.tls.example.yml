@@ -1,0 +1,42 @@
+# yaml-language-server: $schema=./http.schema.json
+#
+# Two-listener LAN example:
+#   http://10.0.1.100:7777   plaintext
+#   https://10.0.1.100:7778  TLS 1.3
+#
+# Omitted keys keep the defaults documented in http.example.yml.
+# Before use, replace the host address, CIDR, certificate, and key paths.
+# For local testing, run scripts/dev-cert.sh and bind both listeners to 127.0.0.1.
+# Copy this file for deployments; do not edit it in place.
+
+listeners:
+  # Bind explicitly so future interfaces are not exposed by a wildcard.
+  - bind_address: "10.0.1.100"
+    port: 7777
+
+  - bind_address: "10.0.1.100"
+    port: 7778
+    tls:
+      enabled: true
+
+      # PEM chain (leaf first) and matching private key.
+      certificate_chain_file: "/etc/erikslund/tls/fullchain.pem"
+      private_key_file: "/etc/erikslund/tls/privkey.pem"
+
+      minimum_version: "1.3"
+
+      # Omitted group_list keeps OpenSSL's preferred groups, including its hybrid group.
+
+      # HSTS lasts one year and cannot be withdrawn from clients. Use only with stable DNS.
+      strict_transport_security: false
+
+# This network policy applies to both listeners; it is not authentication.
+allow_cidrs:
+  - 10.0.1.0/24
+
+  # Retain loopback for local health checks and sidecars.
+  - 127.0.0.1/32
+  - ::1/128
+
+# Empty omits the Server response header.
+server_header: "erikslund-http"

@@ -1,0 +1,119 @@
+
+name: erikslund-http-e2e
+
+x-hardening: &hardening
+  cap_drop: ["ALL"]
+  read_only: true
+  user: "1000:1000"
+  security_opt:
+    - "no-new-privileges:true"
+  pids_limit: 128
+  mem_limit: 192m
+  cpus: 1.0
+
+x-status-server: &status-server
+  image: erikslund-http-e2e:latest
+  build:
+    context: ..
+    dockerfile: e2e/Dockerfile
+    target: runtime
+  restart: unless-stopped
+  environment:
+    STATUS_SERVER_BIND: "::"
+  tmpfs:
+    - /tmp
+
+x-tester: &tester
+  image: erikslund-http-e2e-tester:latest
+  build:
+    context: ..
+    dockerfile: e2e/Dockerfile
+    target: tester
+  tmpfs:
+    - /tmp
+
+services:
+  certgen:
+    <<: [*hardening, *tester]
+    network_mode: "none"
+    restart: "no"
+    entrypoint: ["/usr/local/bin/generate-test-certificate.sh"]
+    command: ["/tls"]
+    volumes:
+      - tls:/tls
+
+  status-server:
+    <<: [*hardening, *status-server]
+    depends_on:
+      certgen:
+        condition: service_completed_successfully
+    environment:
+      STATUS_SERVER_BIND: "::"
+      STATUS_SERVER_DRAIN_FILE: /control/drain
+    command: ["/tls/server.crt", "/tls/server.key"]
+    volumes:
+      - tls:/tls:ro
+      - control:/control
+    networks:
+      - e2e
+
+  status-allowlisted:
+    <<: [*hardening, *status-server]
+    environment:
+      STATUS_SERVER_BIND: "::"
+      STATUS_SERVER_ALLOW_CIDRS: "127.0.0.1/32,::1/128,10.77.0.20/32"
+    networks:
+      - e2e
+
+  status-restricted:
+    <<: [*hardening, *status-server]
+    environment:
+      STATUS_SERVER_BIND: "::"
+      STATUS_SERVER_ALLOW_CIDRS: "127.0.0.1/32,::1/128,10.77.0.99/32"
+    networks:
+      - e2e
+
+  prometheus:
+    <<: *hardening
+    image: prom/prometheus:v3.5.0@sha256:63805ebb8d2b3920190daf1cb14a60871b16fd38bed42b857a3182bc621f4996
+    restart: unless-stopped
+    depends_on:
+      status-server:
+        condition: service_healthy
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=1h
+      - --web.listen-address=0.0.0.0:9090
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - type: tmpfs
+        target: /prometheus
+        tmpfs:
+          mode: 0777
+    tmpfs:
+      - /tmp
+    networks:
+      - e2e
+
+  tester:
+    <<: [*hardening, *tester]
+    profiles: ["tester"]
+    restart: "no"
+    volumes:
+      - tls:/tls:ro
+      - control:/control
+    networks:
+      e2e:
+        ipv4_address: 10.77.0.20
+
+networks:
+  e2e:
+    name: erikslund-http-e2e
+    ipam:
+      config:
+        - subnet: 10.77.0.0/24
+
+volumes:
+  tls:
+  control:

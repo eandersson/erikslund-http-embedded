@@ -1,0 +1,46 @@
+#pragma once
+// Build-time feature switches resolved by CMake, exposed as constexpr so consumers never need #ifdef.
+
+// WHY a configured header rather than only -D compile definitions: every translation unit that
+// includes a public header then sees exactly the values the static library was compiled with. A
+// consumer who forgets a define cannot silently get a different class layout than the archive has.
+// CMake must therefore NOT also pass these as -D; this file is their single definition point.
+
+#include <string_view>
+
+// 1 when OpenSSL 3 was found and linked. The TLS declarations exist either way -- only the
+// implementation is compiled out -- so a Server configured with tls.enabled throws at start().
+#define ERIKSLUND_HTTP_TLS @ERIKSLUND_HTTP_TLS_01@
+
+// 1 when zlib was found and gzip content-encoding is available.
+#define ERIKSLUND_HTTP_ZLIB @ERIKSLUND_HTTP_ZLIB_01@
+
+// 1 when the build added -fcontracts. contracts.hpp keys its shims on this and never on
+// __cpp_contracts, which GCC 16 defines identically with and without the flag.
+#define ERIKSLUND_HTTP_CONTRACTS @ERIKSLUND_HTTP_CONTRACTS_01@
+
+// 1 when the build added -freflection. Only reflect.hpp acts on it.
+#define ERIKSLUND_HTTP_REFLECTION @ERIKSLUND_HTTP_REFLECTION_01@
+
+// 1 when std::stacktrace may be used. Needs -lstdc++exp, which the target propagates.
+#define ERIKSLUND_HTTP_STACKTRACE @ERIKSLUND_HTTP_STACKTRACE_01@
+
+// There is deliberately no ERIKSLUND_HTTP_SIMD here. A std::simd header-block scan was written and
+// measured against the incumbent; it lost on the portable build this library ships, and the option
+// was removed rather than left declared and unused. PERFORMANCE.md holds the numbers.
+
+namespace erikslund::http {
+
+// Consumer-facing mirrors of the macros above. Prefer these in application code: `if constexpr
+// (kTlsSupported)` is checked by the compiler even on the dead branch, an #ifdef body is not.
+inline constexpr bool kTlsSupported = ERIKSLUND_HTTP_TLS != 0;
+inline constexpr bool kZlibSupported = ERIKSLUND_HTTP_ZLIB != 0;
+inline constexpr bool kContractsEnabled = ERIKSLUND_HTTP_CONTRACTS != 0;
+inline constexpr bool kReflectionEnabled = ERIKSLUND_HTTP_REFLECTION != 0;
+inline constexpr bool kStacktraceEnabled = ERIKSLUND_HTTP_STACKTRACE != 0;
+
+// This LIBRARY's version, which is not the service's: install_metrics() publishes it as
+// library_build_info and never as build_info. Also the Server header default.
+inline constexpr std::string_view kVersion = "@PROJECT_VERSION@";
+
+} // namespace erikslund::http

@@ -1,0 +1,164 @@
+{
+   "type": "object",
+   "properties": {
+      "allow_cidrs": {
+         "type": "array",
+         "items": {
+            "type": "string"
+         }
+      },
+      "body_timeout_ms": {
+         "$ref": "#/$defs/uint32_t"
+      },
+      "handshake_timeout_ms": {
+         "$ref": "#/$defs/uint32_t"
+      },
+      "header_timeout_ms": {
+         "$ref": "#/$defs/uint32_t"
+      },
+      "keep_alive_idle_ms": {
+         "$ref": "#/$defs/uint32_t"
+      },
+      "limits": {
+         "type": "object",
+         "properties": {
+            "max_body_bytes": {
+               "$ref": "#/$defs/uint64_t"
+            },
+            "max_header_block_bytes": {
+               "$ref": "#/$defs/uint64_t"
+            },
+            "max_header_count": {
+               "$ref": "#/$defs/uint64_t"
+            },
+            "max_request_line_bytes": {
+               "$ref": "#/$defs/uint64_t"
+            },
+            "max_target_bytes": {
+               "$ref": "#/$defs/uint64_t"
+            }
+         },
+         "additionalProperties": false
+      },
+      "listen_backlog": {
+         "$ref": "#/$defs/int32_t"
+      },
+      "listeners": {
+         "type": "array",
+         "items": {
+            "type": "object",
+            "properties": {
+               "bind_address": {
+                  "type": "string"
+               },
+               "port": {
+                  "$ref": "#/$defs/uint16_t"
+               },
+               "tls": {
+                  "type": "object",
+                  "properties": {
+                     "alpn_protocols": {
+                        "type": "string"
+                     },
+                     "certificate_chain_file": {
+                        "type": "string"
+                     },
+                     "client_ca_file": {
+                        "type": "string"
+                     },
+                     "early_data": {
+                        "type": "boolean"
+                     },
+                     "enabled": {
+                        "type": "boolean"
+                     },
+                     "group_list": {
+                        "type": "string"
+                     },
+                     "kernel_tls": {
+                        "type": "boolean"
+                     },
+                     "minimum_version": {
+                        "type": "string"
+                     },
+                     "private_key_file": {
+                        "type": "string"
+                     },
+                     "require_client_certificate": {
+                        "type": "boolean"
+                     },
+                     "session_tickets": {
+                        "type": "boolean"
+                     },
+                     "strict_transport_security": {
+                        "type": "boolean"
+                     }
+                  },
+                  "additionalProperties": false
+               },
+               "unix_socket_path": {
+                  "type": "string"
+               }
+            },
+            "additionalProperties": false
+         }
+      },
+      "max_connections": {
+         "$ref": "#/$defs/uint32_t"
+      },
+      "max_connections_per_source": {
+         "$ref": "#/$defs/uint32_t"
+      },
+      "max_requests_per_connection": {
+         "$ref": "#/$defs/uint32_t"
+      },
+      "request_deadline_ms": {
+         "$ref": "#/$defs/uint32_t"
+      },
+      "reuse_port": {
+         "type": "boolean"
+      },
+      "server_header": {
+         "type": "string"
+      },
+      "stream_idle_timeout_ms": {
+         "$ref": "#/$defs/uint32_t"
+      },
+      "tcp_nodelay": {
+         "type": "boolean"
+      },
+      "warn_on_public_bind": {
+         "type": "boolean"
+      },
+      "worker_threads": {
+         "$ref": "#/$defs/uint32_t"
+      },
+      "write_timeout_ms": {
+         "$ref": "#/$defs/uint32_t"
+      }
+   },
+   "additionalProperties": false,
+   "$defs": {
+      "int32_t": {
+         "type": "integer",
+         "minimum": -2147483648,
+         "maximum": 2147483647
+      },
+      "uint16_t": {
+         "type": "integer",
+         "minimum": 0,
+         "maximum": 65535
+      },
+      "uint32_t": {
+         "type": "integer",
+         "minimum": 0,
+         "maximum": 4294967295
+      },
+      "uint64_t": {
+         "type": "integer",
+         "minimum": 0,
+         "maximum": 18446744073709551615
+      }
+   },
+   "title": "erikslund::http::ServerConfig"
+}
