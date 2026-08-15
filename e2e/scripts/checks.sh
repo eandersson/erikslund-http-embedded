@@ -323,40 +323,49 @@ check_cidr_refuses_outside_peer() {
 }
 
 check_prometheus_scraping() {
-    local health last_error scrape_url
-    health=$(prometheus_target_field health)
-    last_error=$(prometheus_target_field lastError)
-    scrape_url=$(prometheus_target_field scrapeUrl)
+    local deadline=$((SECONDS + READY_TIMEOUT_SECONDS))
+    local health="" last_error="" scrape_url="" names="" metric missing
+    while [ "$SECONDS" -lt "$deadline" ]; do
+        health=$(prometheus_target_field health 2>/dev/null) || health=""
+        last_error=$(prometheus_target_field lastError 2>/dev/null) || last_error=""
+        scrape_url=$(prometheus_target_field scrapeUrl 2>/dev/null) || scrape_url=""
+        names=$(http_body "${PROMETHEUS_ORIGIN}/api/v1/label/__name__/values" 2>/dev/null) \
+            || names=""
 
-    assert_equals "$health" "up" "Prometheus reports the target up"
-    assert_equals "$last_error" "" "Prometheus reports no scrape error"
-    assert_equals "$scrape_url" "http://status-server:7777/metrics" \
-        "Prometheus is scraping the endpoint the service publishes"
+        missing=""
+        for metric in "${EXPECTED_METRIC_NAMES[@]}"; do
+            if ! printf '%s' "$names" | jq -e --arg name "$metric" \
+                '.data | index($name) != null' >/dev/null 2>&1; then
+                missing="$metric"
+                break
+            fi
+        done
 
-    local names
-    names=$(http_body "${PROMETHEUS_ORIGIN}/api/v1/label/__name__/values")
-    local metric
-    for metric in "${EXPECTED_METRIC_NAMES[@]}"; do
-        if ! printf '%s' "$names" | jq -e --arg name "$metric" \
-            '.data | index($name) != null' >/dev/null; then
-            printf '%s\n' "$names" | jq -r '.data[]' | grep '^status_server' >&2 || true
-            fail "Prometheus ingested no series named ${metric}"
+        if [ "$health" = "up" ] \
+            && [ -z "$last_error" ] \
+            && [ "$scrape_url" = "http://status-server:7777/metrics" ] \
+            && [ -z "$missing" ]; then
+            ok "the real Prometheus scrapes /metrics and indexes every expected series name"
+            return 0
         fi
+        sleep "$POLL_INTERVAL_SECONDS"
     done
 
-    ok "the real Prometheus scrapes /metrics and indexes every expected series name"
+    printf 'Prometheus target: health=%q error=%q url=%q missing_metric=%q\n' \
+        "$health" "$last_error" "$scrape_url" "$missing" >&2
+    fail "Prometheus did not produce a healthy, complete scrape within ${READY_TIMEOUT_SECONDS}s"
 }
 
 check_prometheus_scrape_advances() {
     local before after
-    before=$(prometheus_target_field lastScrape)
+    before=$(prometheus_target_field lastScrape 2>/dev/null) || before=""
     if [ -z "$before" ]; then
         fail "Prometheus has no record of ever scraping the target"
     fi
 
     local deadline=$((SECONDS + SCRAPE_ADVANCE_TIMEOUT_SECONDS))
     while [ "$SECONDS" -lt "$deadline" ]; do
-        after=$(prometheus_target_field lastScrape)
+        after=$(prometheus_target_field lastScrape 2>/dev/null) || after=""
         if [ -n "$after" ] && [ "$after" != "$before" ]; then
             ok "Prometheus is actively scraping (last scrape moved to ${after})"
             return 0

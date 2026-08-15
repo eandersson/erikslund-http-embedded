@@ -4,7 +4,9 @@
 FROM gcc:16.2.0-trixie@sha256:b69972d6afe6d5f6c7f91ae30027caf8a50549ee25b63031071383d00941bf2f
 
 ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update \
+    && apt-get upgrade -y --no-install-recommends \
+    && apt-get install -y --no-install-recommends \
         cmake \
         make \
         libssl-dev \
@@ -14,6 +16,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         cppcheck \
         pkg-config \
         ca-certificates \
+    && apt-get purge -y abigail-tools python3-git \
     && rm -rf /var/lib/apt/lists/*
 
 ADD --checksum=sha256:8da58a7b58e5373adfd0b1940b9db8e1506cf729491440f997be585a3af08335 \

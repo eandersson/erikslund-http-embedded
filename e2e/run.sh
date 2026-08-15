@@ -6,6 +6,7 @@ readonly COMPOSE_FILE=e2e/docker-compose.yml
 readonly TOOLCHAIN_CONTEXT=docker
 readonly TOOLCHAIN_IMAGE=erikslund-http-build
 readonly LOG_DIRECTORY=e2e/logs
+readonly RUN_LOG_DIRECTORY="${LOG_DIRECTORY}/$(date -u +%Y%m%dT%H%M%SZ)"
 
 readonly SERVICE_LOG_LINES=40
 
@@ -13,6 +14,9 @@ readonly HEALTH_TIMEOUT_SECONDS=120
 readonly POLL_INTERVAL_SECONDS=1
 
 readonly HEALTHCHECKED_SERVICES=(status-server status-allowlisted status-restricted)
+
+mkdir -p "$RUN_LOG_DIRECTORY"
+exec > >(tee "${RUN_LOG_DIRECTORY}/run.log") 2>&1
 
 compose() {
     docker compose --file "$COMPOSE_FILE" "$@"
@@ -27,17 +31,14 @@ step() {
 }
 
 retain_logs() {
-    local stamp archive service
-    stamp=$(date -u +%Y%m%dT%H%M%SZ)
-    archive="${LOG_DIRECTORY}/${stamp}"
-    mkdir -p "$archive"
-
-    compose ps --all >"${archive}/containers.txt" 2>&1 || true
+    local service
+    compose ps --all >"${RUN_LOG_DIRECTORY}/containers.txt" 2>&1 || true
     for service in $(compose config --services); do
-        compose logs --no-color --timestamps "$service" >"${archive}/${service}.log" 2>&1 || true
+        compose logs --no-color --timestamps "$service" \
+            >"${RUN_LOG_DIRECTORY}/${service}.log" 2>&1 || true
     done
 
-    printf '\n==> FAILED. Full logs archived under %s\n' "$archive"
+    printf '\n==> FAILED. Full logs archived under %s\n' "$RUN_LOG_DIRECTORY"
     printf '==> last %d lines from status-server:\n' "$SERVICE_LOG_LINES"
     compose logs --no-color --tail "$SERVICE_LOG_LINES" status-server || true
 }
