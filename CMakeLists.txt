@@ -1,5 +1,5 @@
 # CMake 3.25 is the first release that accepts CXX_STANDARD 26.
-cmake_minimum_required(VERSION 3.25)
+cmake_minimum_required(VERSION 3.31)
 project(erikslund_http VERSION 0.1.2 LANGUAGES CXX)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
@@ -120,14 +120,14 @@ else()
     else()
         FetchContent_Declare(
             glaze
-            URL https://codeload.github.com/stephenberry/glaze/tar.gz/be4481f4b106fc82f0b7bc85f6a92202f8c0dd59
-            URL_HASH SHA256=8da58a7b58e5373adfd0b1940b9db8e1506cf729491440f997be585a3af08335
+            URL https://codeload.github.com/stephenberry/glaze/tar.gz/07e5ef2e2d4c53fdfd8603a61be37053b5a27bc5
+            URL_HASH SHA256=3436de5103825f81132500463dbcd8aab1d18a97205a6e046b13f365f338575d
             DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
         FetchContent_MakeAvailable(glaze)
         if(TARGET glaze::glaze)
             set(_glaze_found ON)
             set(ERIKSLUND_HTTP_GLAZE_VIA "fetched")
-            set(ERIKSLUND_HTTP_GLAZE_VERSION "8.0.0 (fetched)")
+            set(ERIKSLUND_HTTP_GLAZE_VERSION "8.1.0 (fetched)")
         endif()
     endif()
 endif()

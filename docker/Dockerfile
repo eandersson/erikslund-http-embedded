@@ -19,8 +19,8 @@ RUN apt-get update \
     && apt-get purge -y abigail-tools python3-git \
     && rm -rf /var/lib/apt/lists/*
 
-ADD --checksum=sha256:8da58a7b58e5373adfd0b1940b9db8e1506cf729491440f997be585a3af08335 \
-    https://codeload.github.com/stephenberry/glaze/tar.gz/be4481f4b106fc82f0b7bc85f6a92202f8c0dd59 \
+ADD --checksum=sha256:3436de5103825f81132500463dbcd8aab1d18a97205a6e046b13f365f338575d \
+    https://codeload.github.com/stephenberry/glaze/tar.gz/07e5ef2e2d4c53fdfd8603a61be37053b5a27bc5 \
     /tmp/glaze.tar.gz
 RUN mkdir /tmp/glaze \
     && tar -xzf /tmp/glaze.tar.gz --strip-components=1 -C /tmp/glaze \
