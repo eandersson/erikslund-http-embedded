@@ -120,14 +120,14 @@ else()
     else()
         FetchContent_Declare(
             glaze
-            URL https://codeload.github.com/stephenberry/glaze/tar.gz/07e5ef2e2d4c53fdfd8603a61be37053b5a27bc5
-            URL_HASH SHA256=3436de5103825f81132500463dbcd8aab1d18a97205a6e046b13f365f338575d
+            URL https://codeload.github.com/stephenberry/glaze/tar.gz/refs/tags/v8.2.0
+            URL_HASH SHA256=dcc1f107cfa3be4094d306bc44b32907ae1331a0557809c16332e643678fe1df
             DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
         FetchContent_MakeAvailable(glaze)
         if(TARGET glaze::glaze)
             set(_glaze_found ON)
             set(ERIKSLUND_HTTP_GLAZE_VIA "fetched")
-            set(ERIKSLUND_HTTP_GLAZE_VERSION "8.1.0 (fetched)")
+            set(ERIKSLUND_HTTP_GLAZE_VERSION "8.2.0 (fetched)")
         endif()
     endif()
 endif()
